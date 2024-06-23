@@ -5,6 +5,7 @@ from pynput import keyboard
 import subprocess
 import os
 from playsound import playsound
+from screeninfo import get_monitors
 
 user_selection = None
 service = input("\nEnter S for Spotify | Enter A for Apple Music\n")
@@ -14,7 +15,7 @@ def on_press(key):
     global x
     try:
         if key == keyboard.Key.space:
-            print(service)
+            
             subprocess.run(("open -a "+service), shell=True)
     except Exception as e:
         print(f"Error: {e}")
@@ -27,42 +28,50 @@ if service == "A" or service == "a":
 listener = keyboard.Listener(on_press=on_press)
 listener.start()
 
+monitor = get_monitors()[0]
+screen_width = monitor.width
+screen_height = monitor.height
 while True: 
+
     x, y = pyautogui.position()
     positionStr = ('X' + str(x)).rjust(4)
-    y = 100 - (y/9.55)
-    x = 100 - (x/14.69)
-    print(positionStr, end='')
-    osascript.osascript("set volume output volume "+str(y))
-    print('\b' * len(positionStr), end='', flush=True) 
-    print("| x: ", x, end='\r')
-    if x <= 2:
-        print("Skip detected")
+    y = 100 - (y/(screen_height/100))
+
+    print(x, end='')
+
+    if x <= 20:
+      
         playsound('funk.aiff', block=False)
-        print("Sound played")
+        pyautogui.moveTo((screen_width/2), None)
+
         # Use pynput for next track
         controller.press(keyboard.Key.media_next)
-        print("key pressed")
+
         controller.release(keyboard.Key.media_next)
-        print("key released")
-        pyautogui.moveTo(734, None)
-        print("Moved mouse")
+   
         print("Next")
         
-    if x >= 98:
+    if x >= screen_width-20:
         os.system(f'afplay funk.aiff')
+        pyautogui.moveTo((screen_width/2), None)
         # Use pynput for previous track
         controller.press(keyboard.Key.media_previous)
         controller.release(keyboard.Key.media_previous)
-        pyautogui.moveTo(734, None)
+        
         print("Prev")
         
     if y <= 2:
         os.system(f'afplay funk.aiff')
+        pyautogui.moveTo(None, (screen_height/2))
         # Use pynput for play/pause
         controller.press(keyboard.Key.media_play_pause)
         controller.release(keyboard.Key.media_play_pause)
+        
         print("Paused/Played")
+    osascript.osascript("set volume output volume "+str(y))
+    print('\b' * len(positionStr), end='', flush=True) 
+    print("| x: ", x, end='\r')
+    
         
 
 
